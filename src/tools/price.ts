@@ -1,4 +1,4 @@
-import type { Tool } from "hedera-agent-kit";
+import type { Tool } from "@hashgraph/hedera-agent-kit";
 import { z } from "zod";
 import { createPythClient } from "../api/client";
 import { resolvePythConfig } from "../config";

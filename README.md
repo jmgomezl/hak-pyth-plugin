@@ -23,12 +23,17 @@ npm install hak-pyth-plugin
 ## Quick Start (Agent)
 
 ```ts
-import { HederaAgent } from "hedera-agent-kit";
+import { HederaLangchainToolkit } from "@hashgraph/hedera-agent-kit-langchain";
 import { pythPlugin } from "hak-pyth-plugin";
 
-const agent = new HederaAgent({
-  plugins: [pythPlugin]
+const hederaAgentToolkit = new HederaLangchainToolkit({
+  client,
+  configuration: {
+    plugins: [pythPlugin],
+  },
 });
+
+const tools = hederaAgentToolkit.getTools();
 ```
 
 ## Configuration
@@ -42,15 +47,20 @@ Defaults:
 You can override in code:
 
 ```ts
-const agent = new HederaAgent({
-  plugins: [pythPlugin],
-  config: {
-    pyth: {
-      baseUrl: "https://hermes.pyth.network",
-      timeoutMs: 10000,
-      retries: 2
+import { HederaLangchainToolkit } from "@hashgraph/hedera-agent-kit-langchain";
+
+const hederaAgentToolkit = new HederaLangchainToolkit({
+  client,
+  configuration: {
+    plugins: [pythPlugin],
+    config: {
+      pyth: {
+        baseUrl: "https://hermes.pyth.network",
+        timeoutMs: 10000,
+        retries: 2
+      }
     }
-  }
+  },
 });
 ```
 
