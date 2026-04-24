@@ -53,7 +53,6 @@ export const latestPricesTool: Tool = {
         feedIds,
         missingFeedIds,
         updates: normalized,
-        raw: response,
       };
     } catch (error) {
       return {

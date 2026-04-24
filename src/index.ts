@@ -9,4 +9,10 @@ export const pythPlugin: Plugin = {
   tools: () => [listPriceFeedsTool, latestPriceTool, latestPricesTool],
 };
 
+export const pythPluginToolNames = {
+  PYTH_LIST_PRICE_FEEDS_TOOL: listPriceFeedsTool.method,
+  PYTH_GET_LATEST_PRICE_TOOL: latestPriceTool.method,
+  PYTH_GET_LATEST_PRICES_TOOL: latestPricesTool.method,
+} as const;
+
 export { pythPlugin as default };

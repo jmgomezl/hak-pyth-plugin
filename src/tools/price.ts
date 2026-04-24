@@ -42,7 +42,6 @@ export const latestPriceTool: Tool = {
         success: true,
         feedId,
         update: normalizedUpdate,
-        raw: response,
       };
     } catch (error) {
       return {

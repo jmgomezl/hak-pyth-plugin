@@ -91,7 +91,11 @@ export class PythClient {
     if (!ids.length) {
       return { parsed: [] };
     }
-    return this.request<PythPriceUpdateResponse>(PYTH_ENDPOINTS.latestPriceUpdates, { ids });
+    const response = await this.request<PythPriceUpdateResponse>(
+      PYTH_ENDPOINTS.latestPriceUpdates,
+      { ids, parsed: "true", binary: "false" },
+    );
+    return { parsed: response.parsed };
   }
 
   async getLatestPriceUpdate(id: string): Promise<PythPriceUpdateResponse> {
