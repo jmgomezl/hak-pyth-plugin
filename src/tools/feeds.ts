@@ -1,4 +1,5 @@
-import type { Tool } from "@hashgraph/hedera-agent-kit";
+import { BaseTool, type Context } from "@hashgraph/hedera-agent-kit";
+import type { Client } from "@hiero-ledger/sdk";
 import { z } from "zod";
 import { createPythClient } from "../api/client";
 import { resolvePythConfig } from "../config";
@@ -19,13 +20,23 @@ const feedsInputSchema = z.object({
     .describe(`Maximum number of feeds to return (1–${MAX_FEEDS}, default 10).`),
 });
 
-export const listPriceFeedsTool: Tool = {
-  method: "pyth_list_price_feeds",
-  name: "Pyth List Price Feeds",
-  description: `List available Pyth price feeds filtered by query. Returns at most ${MAX_FEEDS} results. Use a specific query (e.g. 'BTC/USD') to find the exact feed you need.`,
-  parameters: feedsInputSchema,
-  execute: async (_client, context, params) => {
-    const args = feedsInputSchema.parse(params);
+type FeedsInput = z.infer<typeof feedsInputSchema>;
+
+export class ListPriceFeedsTool extends BaseTool<FeedsInput, FeedsInput> {
+  method = "pyth_list_price_feeds";
+  name = "Pyth List Price Feeds";
+  description = `List available Pyth price feeds filtered by query. Returns at most ${MAX_FEEDS} results. Use a specific query (e.g. 'BTC/USD') to find the exact feed you need.`;
+  parameters = feedsInputSchema;
+
+  async normalizeParams(
+    params: FeedsInput,
+    _context: Context,
+    _client: Client,
+  ): Promise<FeedsInput> {
+    return feedsInputSchema.parse(params);
+  }
+
+  async coreAction(args: FeedsInput, context: Context, _client: Client) {
     const config = resolvePythConfig(context);
     const api =
       (context as { pythClient?: ReturnType<typeof createPythClient> }).pythClient ??
@@ -52,5 +63,15 @@ export const listPriceFeedsTool: Tool = {
         error: error instanceof Error ? error.message : "Unknown error",
       };
     }
-  },
-};
+  }
+
+  override async shouldSecondaryAction(_coreActionResult: unknown, _context: Context) {
+    return false;
+  }
+
+  async secondaryAction(_request: unknown, _client: Client, _context: Context) {
+    return null;
+  }
+}
+
+export const listPriceFeedsTool = new ListPriceFeedsTool();
