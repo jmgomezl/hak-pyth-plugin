@@ -19,12 +19,14 @@ const readContextConfig = (context: unknown): Partial<PythConfig> => {
     return {};
   }
   const ctx = context as {
+    pyth?: Partial<PythConfig>;
     config?: { pyth?: Partial<PythConfig> };
     pluginConfig?: { pyth?: Partial<PythConfig> };
   };
   return {
     ...(ctx.pluginConfig?.pyth ?? {}),
     ...(ctx.config?.pyth ?? {}),
+    ...(ctx.pyth ?? {}),
   };
 };
 

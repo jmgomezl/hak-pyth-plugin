@@ -10,7 +10,9 @@ const feedsInputSchema = z.object({
   query: z
     .string()
     .min(1)
-    .describe("Filter by symbol/base/quote (e.g., 'BTC', 'BTC/USD', 'Crypto.BTC/USD'). Must be specific — broad queries are truncated to 25 results."),
+    .describe(
+      "Filter by symbol/base/quote (e.g., 'BTC', 'BTC/USD', 'Crypto.BTC/USD'). Must be specific — broad queries are truncated to 25 results.",
+    ),
   limit: z
     .number()
     .int()

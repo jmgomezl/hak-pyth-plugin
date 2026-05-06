@@ -44,22 +44,24 @@ Defaults:
 - `PYTH_TIMEOUT_MS` (default: `10000`)
 - `PYTH_RETRIES` (default: `2`)
 
-You can override in code:
+You can override in code by passing a `pyth` key inside `context`:
 
 ```ts
+import { AgentMode } from "@hashgraph/hedera-agent-kit";
 import { HederaLangchainToolkit } from "@hashgraph/hedera-agent-kit-langchain";
 
 const hederaAgentToolkit = new HederaLangchainToolkit({
   client,
   configuration: {
     plugins: [pythPlugin],
-    config: {
+    context: {
+      mode: AgentMode.AUTONOMOUS,
       pyth: {
         baseUrl: "https://hermes.pyth.network",
         timeoutMs: 10000,
-        retries: 2
-      }
-    }
+        retries: 2,
+      },
+    },
   },
 });
 ```
@@ -68,9 +70,28 @@ const hederaAgentToolkit = new HederaLangchainToolkit({
 
 | Method | Description | Parameters |
 | --- | --- | --- |
-| `pyth_list_price_feeds` | List/search feeds | `query?` (symbol/base/quote filter) |
+| `pyth_list_price_feeds` | List/search feeds | `query?` (symbol/base/quote filter), `limit?` (1–25, default 10) |
 | `pyth_get_latest_price` | Latest price for one feed | `priceFeedId?`, `symbol?` |
 | `pyth_get_latest_prices` | Latest prices for many feeds | `priceFeedIds?`, `symbols?` |
+
+> **Token context warning:** Querying `pyth_list_price_feeds` without a `query` filter can return
+> thousands of feeds and exhaust the LLM context window. Always pass a focused `query` (e.g. `"BTC"`,
+> `"ETH/USD"`) and rely on the default `limit` of 10 results. Avoid broad queries like
+> "show me all available price feeds".
+
+## LLM Prompt Examples
+
+Once the plugin is registered with your agent, you can interact with it using natural language:
+
+```
+"What BTC/USD price feeds are available on Pyth?"
+"What is the current price of ETH in USD?"
+"Get me the latest prices for BTC/USD and SOL/USD."
+"Find Pyth feeds for gold (XAU)."
+"What is the EUR/USD exchange rate right now?"
+```
+
+See the [`examples/`](./examples) directory for fully-wired LangChain and Vercel AI agent scripts.
 
 ## Usage Examples
 
@@ -151,6 +172,12 @@ npm run build
 npm run test
 npm run lint
 ```
+
+## Resources
+
+- [Hedera Agent Kit](https://github.com/hashgraph/hedera-agent-kit-js)
+- [Hedera AI Agent Kit Docs](https://docs.hedera.com/hedera/open-source-solutions/ai-studio-on-hedera/hedera-ai-agent-kit)
+- [Pyth Hermes API Docs](https://docs.pyth.network/price-feeds/api-reference/hermes)
 
 ## License
 
