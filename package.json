@@ -48,7 +48,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "hedera-agent-kit": "^3.5.2",
+    "@hashgraph/hedera-agent-kit": "^4.0.0",
     "axios": "^1.7.0",
     "zod": "^3.22.0"
   },
