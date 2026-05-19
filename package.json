@@ -1,9 +1,10 @@
 {
   "name": "hak-pyth-plugin",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Hedera Agent Kit plugin for Pyth price feeds",
   "type": "module",
   "license": "MIT",
+  "author": "Juanma Gomez",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jmgomezl/hak-pyth-plugin.git"
@@ -12,7 +13,6 @@
   "bugs": {
     "url": "https://github.com/jmgomezl/hak-pyth-plugin/issues"
   },
-  "author": "Juanma Gomez",
   "keywords": [
     "hedera",
     "pyth",
@@ -45,14 +45,20 @@
     "test:watch": "vitest",
     "test:integration": "node scripts/integration-test.mjs",
     "example": "node scripts/example.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "peerDependencies": {
+    "@hashgraph/hedera-agent-kit": "^4.0.0",
+    "@hiero-ledger/sdk": "^2.84.0"
   },
   "dependencies": {
-    "@hashgraph/hedera-agent-kit": "^4.0.0",
     "axios": "^1.7.0",
     "zod": "^3.22.0"
   },
   "devDependencies": {
+    "@hashgraph/hedera-agent-kit": "^4.0.0",
+    "@hiero-ledger/sdk": "^2.84.0",
     "@biomejs/biome": "^1.9.0",
     "@types/node": "^20.11.0",
     "axios-mock-adapter": "^1.22.0",
