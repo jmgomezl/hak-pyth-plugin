@@ -3,6 +3,12 @@
 A Hedera Agent Kit plugin that exposes Pyth Network price feeds via the Hermes API. Use it to pull
 real-time market data (crypto, FX, equities, commodities) with simple tool calls.
 
+> **Infrastructure migration notice:** Pyth Network is migrating from Pythnet to Pyth Pro + Lazer
+> (Q3/Q4 2026). Hermes (`hermes.pyth.network`) will be affected. A compatibility layer is planned,
+> and this plugin is already migration-ready — just update `PYTH_BASE_URL` when Pyth publishes the
+> new endpoint. Track progress in [issue #3](https://github.com/jmgomezl/hak-pyth-plugin/issues/3)
+> and the [official announcement](https://www.pyth.network/blog/pyth-s-next-chapter-infrastructure-upgrade-and-a-revenue-based-economic-model).
+
 ## Overview
 
 This plugin registers Pyth tools for:
