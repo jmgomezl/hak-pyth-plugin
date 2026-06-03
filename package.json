@@ -13,22 +13,11 @@
   "bugs": {
     "url": "https://github.com/jmgomezl/hak-pyth-plugin/issues"
   },
-  "keywords": [
-    "hedera",
-    "pyth",
-    "oracle",
-    "agent-kit",
-    "plugin",
-    "price-feeds"
-  ],
+  "keywords": ["hedera", "pyth", "oracle", "agent-kit", "plugin", "price-feeds"],
   "main": "dist/index.cjs",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ],
+  "files": ["dist", "README.md", "LICENSE"],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",

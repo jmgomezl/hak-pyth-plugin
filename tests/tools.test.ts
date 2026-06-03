@@ -1,3 +1,4 @@
+import type { Context } from "@hashgraph/hedera-agent-kit";
 import { describe, expect, it, vi } from "vitest";
 import { ListPriceFeedsTool } from "../src/tools/feeds";
 import { LatestPriceTool } from "../src/tools/price";
@@ -34,7 +35,11 @@ describe("pyth_list_price_feeds", () => {
 
   it("returns feeds from the client", async () => {
     const client = makeClient();
-    const result = await tool.coreAction({ query: "BTC", limit: 10 }, { pythClient: client }, null);
+    const result = await tool.coreAction(
+      { query: "BTC", limit: 10 },
+      { pythClient: client } as unknown as Context,
+      null as never,
+    );
 
     expect(result.success).toBe(true);
     expect(result.feeds).toHaveLength(1);
@@ -48,7 +53,11 @@ describe("pyth_list_price_feeds", () => {
     );
     const client = makeClient({ getPriceFeeds: vi.fn().mockResolvedValue(manyFeeds) });
 
-    const result = await tool.coreAction({ query: "Feed", limit: 5 }, { pythClient: client }, null);
+    const result = await tool.coreAction(
+      { query: "Feed", limit: 5 },
+      { pythClient: client } as unknown as Context,
+      null as never,
+    );
 
     expect(result.success).toBe(true);
     expect(result.returned).toBe(5);
@@ -59,7 +68,11 @@ describe("pyth_list_price_feeds", () => {
     const client = makeClient({
       getPriceFeeds: vi.fn().mockRejectedValue(new Error("network error")),
     });
-    const result = await tool.coreAction({ query: "BTC", limit: 10 }, { pythClient: client }, null);
+    const result = await tool.coreAction(
+      { query: "BTC", limit: 10 },
+      { pythClient: client } as unknown as Context,
+      null as never,
+    );
 
     expect(result.success).toBe(false);
     expect(result.error).toBe("network error");
@@ -71,7 +84,11 @@ describe("pyth_get_latest_price", () => {
 
   it("fetches price by feed ID", async () => {
     const client = makeClient();
-    const result = await tool.coreAction({ priceFeedId: feedId }, { pythClient: client }, null);
+    const result = await tool.coreAction(
+      { priceFeedId: feedId },
+      { pythClient: client } as unknown as Context,
+      null as never,
+    );
 
     expect(result.success).toBe(true);
     expect(result.feedId).toBe(feedId);
@@ -81,7 +98,11 @@ describe("pyth_get_latest_price", () => {
 
   it("resolves symbol to feed ID when no priceFeedId given", async () => {
     const client = makeClient();
-    const result = await tool.coreAction({ symbol: "BTC/USD" }, { pythClient: client }, null);
+    const result = await tool.coreAction(
+      { symbol: "BTC/USD" },
+      { pythClient: client } as unknown as Context,
+      null as never,
+    );
 
     expect(result.success).toBe(true);
     expect(client.resolvePriceFeedId).toHaveBeenCalledWith("BTC/USD");
@@ -91,7 +112,11 @@ describe("pyth_get_latest_price", () => {
     const client = makeClient({
       getLatestPriceUpdate: vi.fn().mockRejectedValue(new Error("timeout")),
     });
-    const result = await tool.coreAction({ priceFeedId: feedId }, { pythClient: client }, null);
+    const result = await tool.coreAction(
+      { priceFeedId: feedId },
+      { pythClient: client } as unknown as Context,
+      null as never,
+    );
 
     expect(result.success).toBe(false);
     expect(result.error).toBe("timeout");
@@ -109,8 +134,8 @@ describe("pyth_get_latest_prices", () => {
     });
     const result = await tool.coreAction(
       { priceFeedIds: [feedId, ethFeedId] },
-      { pythClient: client },
-      null,
+      { pythClient: client } as unknown as Context,
+      null as never,
     );
 
     expect(result.success).toBe(true);
@@ -124,8 +149,8 @@ describe("pyth_get_latest_prices", () => {
     });
     const result = await tool.coreAction(
       { symbols: ["BTC/USD", "BTC/USD"] },
-      { pythClient: client },
-      null,
+      { pythClient: client } as unknown as Context,
+      null as never,
     );
 
     expect(result.success).toBe(true);
@@ -136,7 +161,11 @@ describe("pyth_get_latest_prices", () => {
     const client = makeClient({
       getLatestPriceUpdates: vi.fn().mockResolvedValue({ parsed: [] }),
     });
-    const result = await tool.coreAction({ priceFeedIds: [feedId] }, { pythClient: client }, null);
+    const result = await tool.coreAction(
+      { priceFeedIds: [feedId] },
+      { pythClient: client } as unknown as Context,
+      null as never,
+    );
 
     expect(result.success).toBe(true);
     expect(result.missingFeedIds).toContain(feedId);
@@ -147,7 +176,11 @@ describe("pyth_get_latest_prices", () => {
     const client = makeClient({
       getLatestPriceUpdates: vi.fn().mockRejectedValue(new Error("bad request")),
     });
-    const result = await tool.coreAction({ priceFeedIds: [feedId] }, { pythClient: client }, null);
+    const result = await tool.coreAction(
+      { priceFeedIds: [feedId] },
+      { pythClient: client } as unknown as Context,
+      null as never,
+    );
 
     expect(result.success).toBe(false);
     expect(result.error).toBe("bad request");
