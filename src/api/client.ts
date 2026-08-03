@@ -1,4 +1,5 @@
 import axios, { type AxiosError, type AxiosInstance } from "axios";
+import { LEGACY_BASE_URL } from "../config";
 import type {
   PythClientOptions,
   PythPriceFeed,
@@ -32,19 +33,32 @@ const quoteFromAttributes = (attributes: PythPriceFeedAttributes | undefined): s
   return attributes.quote_currency ?? attributes.quoteCurrency ?? null;
 };
 
+/**
+ * Pyth Core requires `Authorization: Bearer <apiKey>` from 2026-08-18.
+ * Axios errors are opaque to an agent, so turn auth failures into a message
+ * that says exactly what to set.
+ */
+const authErrorMessage = (hasApiKey: boolean): string =>
+  hasApiKey
+    ? "Pyth rejected the API key (401/403). Confirm PYTH_API_KEY is active and its plan covers this endpoint: https://docs.pyth.network/price-feeds/pro/acquire-api-key"
+    : "Pyth requires an API key for this endpoint. Set PYTH_API_KEY (or context.pyth.apiKey) — get one at https://docs.pyth.network/price-feeds/pro/acquire-api-key";
+
 export class PythClient {
   private readonly http: AxiosInstance;
   private readonly retries: number;
+  private readonly hasApiKey: boolean;
   private priceFeedsCache: PythPriceFeed[] | null = null;
   private feedIndex: Map<string, PythPriceFeed> | null = null;
 
   constructor(options: PythClientOptions & { http?: AxiosInstance } = {}) {
     this.retries = options.retries ?? 2;
+    this.hasApiKey = Boolean(options.apiKey);
     this.http =
       options.http ??
       axios.create({
-        baseURL: options.baseUrl ?? "https://hermes.pyth.network",
+        baseURL: options.baseUrl ?? LEGACY_BASE_URL,
         timeout: options.timeoutMs ?? 10_000,
+        headers: options.apiKey ? { Authorization: `Bearer ${options.apiKey}` } : undefined,
       });
   }
 
@@ -60,6 +74,14 @@ export class PythClient {
       } catch (error) {
         const axiosError = error as AxiosError;
         lastError = axiosError;
+        const status = axiosError.response?.status;
+        if (status === 401 || status === 403) {
+          const authError: Error & { cause?: unknown } = new Error(
+            authErrorMessage(this.hasApiKey),
+          );
+          authError.cause = axiosError;
+          throw authError;
+        }
         if (attempt < this.retries && isRetryableError(axiosError)) {
           await sleep(200 * 2 ** attempt);
           continue;

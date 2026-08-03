@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { resolvePythConfig } from "../src/config";
+import { LEGACY_BASE_URL, UPGRADED_BASE_URL, resolvePythConfig } from "../src/config";
 
-const DEFAULT_BASE_URL = "https://hermes.pyth.network";
+const DEFAULT_BASE_URL = LEGACY_BASE_URL;
 
 describe("resolvePythConfig", () => {
   let savedEnv: NodeJS.ProcessEnv;
@@ -14,6 +14,8 @@ describe("resolvePythConfig", () => {
     delete process.env.PYTH_TIMEOUT_MS;
     // biome-ignore lint/performance/noDelete: process.env requires delete to truly unset vars
     delete process.env.PYTH_RETRIES;
+    // biome-ignore lint/performance/noDelete: process.env requires delete to truly unset vars
+    delete process.env.PYTH_API_KEY;
   });
 
   afterEach(() => {
@@ -77,5 +79,51 @@ describe("resolvePythConfig", () => {
     const config = resolvePythConfig();
     expect(config.timeoutMs).toBe(10_000);
     expect(config.retries).toBe(2);
+  });
+
+  describe("Pyth Core upgrade (auth + endpoint selection)", () => {
+    it("stays on the legacy endpoint with no api key", () => {
+      const config = resolvePythConfig();
+      expect(config.baseUrl).toBe(LEGACY_BASE_URL);
+      expect(config.apiKey).toBeUndefined();
+    });
+
+    it("switches to the upgraded endpoint when PYTH_API_KEY is set", () => {
+      process.env.PYTH_API_KEY = "pyth_test_key";
+
+      const config = resolvePythConfig();
+      expect(config.baseUrl).toBe(UPGRADED_BASE_URL);
+      expect(config.apiKey).toBe("pyth_test_key");
+    });
+
+    it("switches to the upgraded endpoint for a context api key", () => {
+      const config = resolvePythConfig({ pyth: { apiKey: "ctx_key" } });
+      expect(config.baseUrl).toBe(UPGRADED_BASE_URL);
+      expect(config.apiKey).toBe("ctx_key");
+    });
+
+    it("context api key takes priority over env", () => {
+      process.env.PYTH_API_KEY = "env_key";
+
+      const config = resolvePythConfig({ pyth: { apiKey: "ctx_key" } });
+      expect(config.apiKey).toBe("ctx_key");
+    });
+
+    it("an explicit baseUrl wins over the api-key default", () => {
+      process.env.PYTH_API_KEY = "pyth_test_key";
+      process.env.PYTH_BASE_URL = "https://self-hosted.example.com";
+
+      const config = resolvePythConfig();
+      expect(config.baseUrl).toBe("https://self-hosted.example.com");
+      expect(config.apiKey).toBe("pyth_test_key");
+    });
+
+    it("treats a blank api key as absent", () => {
+      process.env.PYTH_API_KEY = "   ";
+
+      const config = resolvePythConfig();
+      expect(config.apiKey).toBeUndefined();
+      expect(config.baseUrl).toBe(LEGACY_BASE_URL);
+    });
   });
 });

@@ -40,10 +40,16 @@ export interface PythClientOptions {
   baseUrl?: string;
   timeoutMs?: number;
   retries?: number;
+  apiKey?: string;
 }
 
 export interface PythConfig {
   baseUrl: string;
   timeoutMs: number;
   retries: number;
+  /**
+   * Pyth API key, sent as `Authorization: Bearer <apiKey>`.
+   * Required by the upgraded Hermes endpoint from August 18, 2026.
+   */
+  apiKey?: string;
 }
