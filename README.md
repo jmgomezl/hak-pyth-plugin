@@ -3,11 +3,19 @@
 A Hedera Agent Kit plugin that exposes Pyth Network price feeds via the Hermes API. Use it to pull
 real-time market data (crypto, FX, equities, commodities) with simple tool calls.
 
-> **Infrastructure migration notice:** Pyth Network is migrating from Pythnet to Pyth Pro + Lazer
-> (Q3/Q4 2026). Hermes (`hermes.pyth.network`) will be affected. A compatibility layer is planned,
-> and this plugin is already migration-ready — just update `PYTH_BASE_URL` when Pyth publishes the
-> new endpoint. Track progress in [issue #3](https://github.com/jmgomezl/hak-pyth-plugin/issues/3)
-> and the [official announcement](https://www.pyth.network/blog/pyth-s-next-chapter-infrastructure-upgrade-and-a-revenue-based-economic-model).
+> ### ⚠️ Action required before 2026-08-18 — Pyth Core upgrade
+>
+> Pyth Core is being upgraded under [OP-PIP-100](https://forum.pyth.network/t/passed-op-pip-100-pyth-core-to-pyth-pro-migration/2420).
+> **From August 18, 2026, Hermes requires an API key.** Anonymous requests to price-update routes
+> will stop working.
+>
+> **To upgrade:** get a key from
+> [Pyth Terminal](https://docs.pyth.network/price-feeds/pro/acquire-api-key) (requires a Starter or
+> Pro data plan), then set `PYTH_API_KEY`. That is the only change needed — the plugin switches to
+> the upgraded endpoint (`https://pyth.dourolabs.app/hermes`) automatically.
+>
+> Without a key the plugin keeps using `https://hermes.pyth.network`, which works until the upgrade
+> date. Tracked in [issue #3](https://github.com/jmgomezl/hak-pyth-plugin/issues/3).
 
 ## Overview
 
@@ -44,11 +52,23 @@ const tools = hederaAgentToolkit.getTools();
 
 ## Configuration
 
-Defaults:
+| Variable | Default | Notes |
+|---|---|---|
+| `PYTH_API_KEY` | _(none)_ | Sent as `Authorization: Bearer <key>`. Required from 2026-08-18. |
+| `PYTH_BASE_URL` | see below | Overrides the endpoint chosen automatically. |
+| `PYTH_TIMEOUT_MS` | `10000` | Request timeout. |
+| `PYTH_RETRIES` | `2` | Retries on transient errors (429/5xx). Auth failures never retry. |
 
-- `PYTH_BASE_URL` (default: `https://hermes.pyth.network`)
-- `PYTH_TIMEOUT_MS` (default: `10000`)
-- `PYTH_RETRIES` (default: `2`)
+**How the endpoint is chosen.** An explicit `PYTH_BASE_URL` (or `context.pyth.baseUrl`) always
+wins. Otherwise the API key decides:
+
+| `PYTH_API_KEY` | Endpoint used |
+|---|---|
+| not set | `https://hermes.pyth.network` — legacy, works until 2026-08-18 |
+| set | `https://pyth.dourolabs.app/hermes` — upgraded, authenticated |
+
+This pairing is deliberate: the upgraded endpoint rejects anonymous price-update requests, and the
+legacy endpoint ignores the key, so neither combination can be silently wrong.
 
 You can override in code by passing a `pyth` key inside `context`:
 
@@ -63,7 +83,7 @@ const hederaAgentToolkit = new HederaLangchainToolkit({
     context: {
       mode: AgentMode.AUTONOMOUS,
       pyth: {
-        baseUrl: "https://hermes.pyth.network",
+        apiKey: process.env.PYTH_API_KEY,
         timeoutMs: 10000,
         retries: 2,
       },
@@ -166,7 +186,7 @@ npm run test:integration
 Optional env overrides:
 
 ```bash
-export PYTH_BASE_URL=https://hermes.pyth.network
+export PYTH_API_KEY=your_key_here   # exercises the upgraded endpoint
 export PYTH_TEST_QUERY=BTC
 export PYTH_TEST_FEED_ID=0xff61491a931112ddf1bd8147cd1b641375f79f5825126d665480874634fd0ace
 ```

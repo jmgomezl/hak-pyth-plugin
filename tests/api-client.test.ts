@@ -97,4 +97,52 @@ describe("PythClient", () => {
     expect(updates).toEqual({ parsed: [] });
     expect(mock.history.get).toHaveLength(0);
   });
+
+  describe("Pyth Core upgrade (auth)", () => {
+    it("sends the api key as a bearer token", async () => {
+      const client = new PythClient({
+        baseUrl: "https://example.test",
+        apiKey: "pyth_test_key",
+      });
+      // biome-ignore lint/suspicious/noExplicitAny: reach into the private axios instance under test
+      const http = (client as any).http;
+      const mock = new MockAdapter(http);
+      mock.onGet("/v2/price_feeds").reply(200, feedList);
+
+      await client.getPriceFeeds();
+
+      expect(http.defaults.baseURL).toBe("https://example.test");
+      expect(mock.history.get?.[0]?.headers?.Authorization).toBe("Bearer pyth_test_key");
+    });
+
+    it("sends no Authorization header without an api key", async () => {
+      const client = new PythClient({ baseUrl: "https://example.test" });
+      // biome-ignore lint/suspicious/noExplicitAny: reach into the private axios instance under test
+      const http = (client as any).http;
+      const mock = new MockAdapter(http);
+      mock.onGet("/v2/price_feeds").reply(200, feedList);
+
+      await client.getPriceFeeds();
+
+      expect(mock.history.get?.[0]?.headers?.Authorization).toBeUndefined();
+    });
+
+    it("turns a 401 into an actionable error and does not retry", async () => {
+      const { client, mock } = createClient(2);
+      mock.onGet("/v2/price_feeds").reply(401, "unauthorized");
+
+      await expect(client.getPriceFeeds()).rejects.toThrow(/PYTH_API_KEY/);
+      expect(mock.history.get).toHaveLength(1);
+    });
+
+    it("reports a rejected key differently from a missing one", async () => {
+      const client = new PythClient({ baseUrl: "https://example.test", apiKey: "bad_key" });
+      // biome-ignore lint/suspicious/noExplicitAny: reach into the private axios instance under test
+      const http = (client as any).http;
+      const mock = new MockAdapter(http);
+      mock.onGet("/v2/price_feeds").reply(403, "forbidden");
+
+      await expect(client.getPriceFeeds()).rejects.toThrow(/rejected the API key/);
+    });
+  });
 });
